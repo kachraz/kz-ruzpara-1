@@ -41,7 +41,7 @@ cargo install eza fd-find starship ripgrep cfonts artem bat lolcrab image-to-asc
 # Starship init and preset
 echo "starship init fish | source" >~/.config/fish/config.fish
 starship preset pure-preset >~/.config/starship.toml
-cp ./sn/config2.fish ~/.config/fish/config.fish
+cp ./kz/config2.fish ~/.config/fish/config.fish
 
 # Installing UV and BUN
 curl -LsSf https://astral.sh/uv/install.sh | sh
