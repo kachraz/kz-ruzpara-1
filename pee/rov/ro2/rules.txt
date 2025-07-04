@@ -1,0 +1,39 @@
+# Rules 
+
+Make a rust program which I can use to call the OpenRouter API. The program should have these characteristics 
+1. It shuold modular with easy to understand code. 
+2. Dont make complicated loops or logic 
+3. It should be modular and the code should be annotated 
+4. Dont use fictional libraries or make up non existent library calls. Search the lib.rs to find the right libraries 
+5. It should be async functions. Make the code structured and modular , dont make one long function 
+6. If a command being called gets stuch then find alternative strategy 
+7. use cargo next-test , which is installed . The command to rest is cargo nextest run
+
+# OpenRouter Api can be called like this in python 
+- Make an array with a list of models which I will add and then I can choose the model to be called in the code
+
+```python 
+from openai import OpenAI
+
+client = OpenAI(
+  base_url="https://openrouter.ai/api/v1",
+  api_key="<OPENROUTER_API_KEY>",
+)
+
+completion = client.chat.completions.create(
+  extra_headers={
+    "HTTP-Referer": "<YOUR_SITE_URL>", # Optional. Site URL for rankings on openrouter.ai.
+    "X-Title": "<YOUR_SITE_NAME>", # Optional. Site title for rankings on openrouter.ai.
+  },
+  model="openai/gpt-4o",
+  messages=[
+    {
+      "role": "user",
+      "content": "What is the meaning of life?"
+    }
+  ]
+)
+
+print(completion.choices[0].message.content)
+
+```
