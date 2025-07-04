@@ -39,59 +39,66 @@ impl DatabaseEnvMetrics {
     /// Generate a map of all possible operation handles for each table and operation tuple.
     /// Used for tracking all operation metrics.
     fn generate_operation_handles() -> FxHashMap<(&'static str, Operation), OperationMetrics> {
-        let mut operations = FxHashMap::with_capacity_and_hasher(
-            Tables::COUNT * Operation::COUNT,
-            Default::default(),
+        let capacity = Tables::COUNT * Operation::COUNT;
+        let mut operations = FxHashMap::with_capacity_and_hasher(capacity, Default::default());
+        
+        // Pre-allocate and populate in a single pass to minimize allocations
+        operations.extend(
+            Tables::ALL.iter().flat_map(|table| {
+                Operation::iter().map(move |operation| {
+                    (
+                        (table.name(), operation),
+                        OperationMetrics::new_with_labels(&[
+                            (Labels::Table.as_str(), table.name()),
+                            (Labels::Operation.as_str(), operation.as_str()),
+                        ]),
+                    )
+                })
+            })
         );
-        for table in Tables::ALL {
-            for operation in Operation::iter() {
-                operations.insert(
-                    (table.name(), operation),
-                    OperationMetrics::new_with_labels(&[
-                        (Labels::Table.as_str(), table.name()),
-                        (Labels::Operation.as_str(), operation.as_str()),
-                    ]),
-                );
-            }
-        }
         operations
     }
 
     /// Generate a map of all possible transaction modes to metric handles.
     /// Used for tracking a counter of open transactions.
     fn generate_transaction_handles() -> FxHashMap<TransactionMode, TransactionMetrics> {
-        TransactionMode::iter()
-            .map(|mode| {
-                (
-                    mode,
-                    TransactionMetrics::new_with_labels(&[(
-                        Labels::TransactionMode.as_str(),
-                        mode.as_str(),
-                    )]),
-                )
-            })
-            .collect()
+        let mut transactions = FxHashMap::with_capacity_and_hasher(
+            TransactionMode::COUNT,
+            Default::default(),
+        );
+        transactions.extend(TransactionMode::iter().map(|mode| {
+            (
+                mode,
+                TransactionMetrics::new_with_labels(&[(
+                    Labels::TransactionMode.as_str(),
+                    mode.as_str(),
+                )]),
+            )
+        }));
+        transactions
     }
 
     /// Generate a map of all possible transaction mode and outcome handles.
     /// Used for tracking various stats for finished transactions (e.g. commit duration).
     fn generate_transaction_outcome_handles(
     ) -> FxHashMap<(TransactionMode, TransactionOutcome), TransactionOutcomeMetrics> {
-        let mut transaction_outcomes = FxHashMap::with_capacity_and_hasher(
-            TransactionMode::COUNT * TransactionOutcome::COUNT,
-            Default::default(),
+        let capacity = TransactionMode::COUNT * TransactionOutcome::COUNT;
+        let mut transaction_outcomes = FxHashMap::with_capacity_and_hasher(capacity, Default::default());
+        
+        // Use iterator combinators for better performance and reduced allocations
+        transaction_outcomes.extend(
+            TransactionMode::iter().flat_map(|mode| {
+                TransactionOutcome::iter().map(move |outcome| {
+                    (
+                        (mode, outcome),
+                        TransactionOutcomeMetrics::new_with_labels(&[
+                            (Labels::TransactionMode.as_str(), mode.as_str()),
+                            (Labels::TransactionOutcome.as_str(), outcome.as_str()),
+                        ]),
+                    )
+                })
+            })
         );
-        for mode in TransactionMode::iter() {
-            for outcome in TransactionOutcome::iter() {
-                transaction_outcomes.insert(
-                    (mode, outcome),
-                    TransactionOutcomeMetrics::new_with_labels(&[
-                        (Labels::TransactionMode.as_str(), mode.as_str()),
-                        (Labels::TransactionOutcome.as_str(), outcome.as_str()),
-                    ]),
-                );
-            }
-        }
         transaction_outcomes
     }
 
